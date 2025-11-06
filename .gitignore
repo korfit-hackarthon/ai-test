@@ -41,3 +41,5 @@ main.exe
 git_clone.txt
 data
 database.db
+
+bun.lock
