@@ -1,0 +1,38 @@
+services:
+  # Bun Application with SQLite
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend-app
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    volumes:
+      - sqlite_data:/app/data
+    networks:
+      - app-network
+
+  # Caddy2 Reverse Proxy (Automatic HTTPS)
+  caddy:
+    image: caddy:2-alpine
+    container_name: backend-caddy
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  sqlite_data:
+  caddy_data:
+  caddy_config:
