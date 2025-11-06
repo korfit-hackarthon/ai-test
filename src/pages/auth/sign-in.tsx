@@ -27,6 +27,7 @@ export default function SignInPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
@@ -49,6 +50,11 @@ export default function SignInPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const fillDefaultCredentials = () => {
+    setValue('username', 'admin', { shouldValidate: true });
+    setValue('password', '12345', { shouldValidate: true });
   };
 
   return (
@@ -108,10 +114,23 @@ export default function SignInPage() {
               )}
             </div>
 
-            <Button type='submit' className='w-full' disabled={isLoading}>
-              {isLoading && <Spinner className='mr-2' />}
-              {isLoading ? 'Signing in...' : 'Sign In'}
-            </Button>
+            <div className='space-y-3'>
+              <Button type='submit' className='w-full' disabled={isLoading}>
+                {isLoading && <Spinner className='mr-2' />}
+                {isLoading ? 'Signing in...' : 'Sign In'}
+              </Button>
+
+              <Button
+                type='button'
+                variant='ghost'
+                size='sm'
+                className='w-full text-xs text-muted-foreground hover:text-foreground'
+                onClick={fillDefaultCredentials}
+                disabled={isLoading}
+              >
+                데모 계정으로 로그인 (admin / 12345)
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -119,16 +138,12 @@ export default function SignInPage() {
           <p className='text-accent-foreground text-center text-sm'>
             Don't have an account?
             <Button
-              asChild={!isLoading}
+              type='button'
               variant='link'
-              className='px-2'
-              disabled={isLoading}
+              className='px-2 cursor-default'
+              disabled
             >
-              {isLoading ? (
-                <span className='opacity-50'>Create account</span>
-              ) : (
-                <Link to='/auth/sign-up'>Create account</Link>
-              )}
+              Create account
             </Button>
           </p>
         </div>

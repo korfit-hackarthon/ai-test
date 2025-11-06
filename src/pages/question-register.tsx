@@ -48,10 +48,23 @@ export default function QuestionRegister() {
   const fetchQuestions = async () => {
     try {
       const response = await fetch('/api/questions');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error || '질문 목록을 불러오는데 실패했습니다.'
+        );
+      }
       const data = await response.json();
       setQuestions(data);
     } catch (error) {
-      toast.error('질문 목록을 불러오는데 실패했습니다.');
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : '질문 목록을 불러오는데 실패했습니다.',
+        {
+          duration: 5000,
+        }
+      );
     }
   };
 
@@ -73,7 +86,10 @@ export default function QuestionRegister() {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error('Failed to save question');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || '저장에 실패했습니다.');
+      }
 
       toast.success(
         editingId ? '질문이 수정되었습니다.' : '질문이 등록되었습니다.'
@@ -81,7 +97,12 @@ export default function QuestionRegister() {
       resetForm();
       fetchQuestions();
     } catch (error) {
-      toast.error('저장에 실패했습니다.');
+      toast.error(
+        error instanceof Error ? error.message : '저장에 실패했습니다.',
+        {
+          duration: 5000,
+        }
+      );
     } finally {
       setIsLoading(false);
     }
@@ -105,12 +126,20 @@ export default function QuestionRegister() {
         method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error('Failed to delete question');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || '삭제에 실패했습니다.');
+      }
 
       toast.success('질문이 삭제되었습니다.');
       fetchQuestions();
     } catch (error) {
-      toast.error('삭제에 실패했습니다.');
+      toast.error(
+        error instanceof Error ? error.message : '삭제에 실패했습니다.',
+        {
+          duration: 5000,
+        }
+      );
     } finally {
       setDeleteId(null);
     }

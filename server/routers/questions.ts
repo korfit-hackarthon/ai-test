@@ -147,7 +147,7 @@ app.post('/evaluate', zValidator('json', submitAnswerSchema), async (c) => {
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `지원자의 답변: ${userAnswer}` },
       ],
-      reasoning_effort: 'medium',
+      // reasoning_effort: 'medium',
       max_tokens: 2000,
       temperature: 0.7,
     });

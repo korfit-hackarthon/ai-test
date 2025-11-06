@@ -52,6 +52,38 @@ const AI_MODELS = [
     value: 'google/gemini-2.5-flash-preview-09-2025',
     label: 'Gemini 2.5 flash',
   },
+  {
+    value: 'google/gemini-2.5-flash-lite-preview-09-2025',
+    label: 'Gemini 2.5 flash lite',
+  },
+  {
+    value: 'anthropic/claude-haiku-4.5',
+    label: 'Claude Haiku 4.5',
+  },
+  {
+    value: 'openai/gpt-5-chat',
+    label: 'GPT-5 Chat',
+  },
+  {
+    value: 'openai/gpt-5-mini',
+    label: 'GPT-5 Mini',
+  },
+  {
+    value: 'openai/gpt-5-nano',
+    label: 'GPT-5 Nano',
+  },
+  {
+    value: 'x-ai/grok-4-fast',
+    label: 'Grok 4 Fast',
+  },
+  {
+    value: 'qwen/qwen3-vl-235b-a22b-thinking',
+    label: 'Qwen 3 VL 235B A22B Thinking',
+  },
+  {
+    value: 'qwen/qwen3-next-80b-a3b-thinking',
+    label: 'Qwen 3 Next 80B A3B Thinking',
+  },
 ];
 
 export default function QAndA() {
@@ -85,10 +117,23 @@ export default function QAndA() {
   const fetchQuestions = async () => {
     try {
       const response = await fetch('/api/questions');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error || '질문 목록을 불러오는데 실패했습니다.'
+        );
+      }
       const data = await response.json();
       setQuestions(data);
     } catch (error) {
-      toast.error('질문 목록을 불러오는데 실패했습니다.');
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : '질문 목록을 불러오는데 실패했습니다.',
+        {
+          duration: 5000,
+        }
+      );
     }
   };
 
@@ -110,13 +155,23 @@ export default function QAndA() {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to evaluate');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || '평가에 실패했습니다.');
+      }
 
       const data = await response.json();
       setEvaluation(data);
       toast.success('답변이 평가되었습니다!');
     } catch (error) {
-      toast.error('평가에 실패했습니다. 다시 시도해주세요.');
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : '평가에 실패했습니다. 다시 시도해주세요.',
+        {
+          duration: 5000,
+        }
+      );
     } finally {
       setIsEvaluating(false);
     }
