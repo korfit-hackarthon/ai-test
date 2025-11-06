@@ -219,15 +219,17 @@ export default function QAndA() {
                     setSelectedQuestionId(parseInt(value))
                   }
                 >
-                  <SelectTrigger id='question-select'>
+                  <SelectTrigger id='question-select' className='w-full'>
                     <SelectValue placeholder='질문을 선택하세요' />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className='max-w-[calc(100vw-2rem)] sm:max-w-md'>
                     {questions.map((q) => (
-                      <SelectItem key={q.id} value={q.id.toString()}>
-                        {q.question.length > 50
-                          ? `${q.question.slice(0, 50)}...`
-                          : q.question}
+                      <SelectItem
+                        key={q.id}
+                        value={q.id.toString()}
+                        className='max-w-full'
+                      >
+                        <span className='block truncate'>{q.question}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
