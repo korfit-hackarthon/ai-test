@@ -27,6 +27,7 @@ const submitAnswerSchema = z.object({
   questionOrder: z.number(),
   userAnswer: z.string().min(1),
   enableFollowUp: z.boolean().optional(),
+  aiModel: z.string().optional(),
 });
 
 const submitFollowUpSchema = z.object({
@@ -151,8 +152,14 @@ app.post('/sets', zValidator('json', createSetSchema), async (c) => {
 
 // 답변 제출 및 꼬리질문 생성 (스트리밍)
 app.post('/answers', zValidator('json', submitAnswerSchema), async (c) => {
-  const { setId, questionId, questionOrder, userAnswer, enableFollowUp } =
-    c.req.valid('json');
+  const {
+    setId,
+    questionId,
+    questionOrder,
+    userAnswer,
+    enableFollowUp,
+    aiModel,
+  } = c.req.valid('json');
 
   try {
     // 질문 조회 (기본 질문인 경우 ID가 없을 수 있음)
@@ -171,6 +178,8 @@ app.post('/answers', zValidator('json', submitAnswerSchema), async (c) => {
         baseURL: 'https://openrouter.ai/api/v1',
         apiKey: process.env.OPENROUTER_API_KEY,
       });
+
+      const modelToUse = aiModel || 'google/gemini-2.5-flash-preview-09-2025';
 
       const prompt = question
         ? `당신은 한국 기업의 면접관입니다. 지원자의 답변을 듣고 압박 꼬리질문을 생성하세요.
@@ -198,7 +207,7 @@ JSON 형식으로 응답:
 }`;
 
       const completion = await openai.chat.completions.create({
-        model: 'google/gemini-2.5-flash-preview-09-2025',
+        model: modelToUse,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.8,
         max_tokens: 500,

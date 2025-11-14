@@ -7,6 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
 import {
   Send,
@@ -16,6 +23,45 @@ import {
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react';
+
+const AI_MODELS = [
+  {
+    value: 'google/gemini-2.5-flash-preview-09-2025',
+    label: 'Gemini 2.5 flash',
+  },
+  {
+    value: 'google/gemini-2.5-flash-lite-preview-09-2025',
+    label: 'Gemini 2.5 flash lite',
+  },
+  {
+    value: 'anthropic/claude-haiku-4.5',
+    label: 'Claude Haiku 4.5',
+  },
+  {
+    value: 'openai/gpt-5-chat',
+    label: 'GPT-5 Chat',
+  },
+  {
+    value: 'openai/gpt-5-mini',
+    label: 'GPT-5 Mini',
+  },
+  {
+    value: 'openai/gpt-5-nano',
+    label: 'GPT-5 Nano',
+  },
+  {
+    value: 'x-ai/grok-4-fast',
+    label: 'Grok 4 Fast',
+  },
+  {
+    value: 'qwen/qwen3-vl-235b-a22b-thinking',
+    label: 'Qwen 3 VL 235B A22B Thinking',
+  },
+  {
+    value: 'qwen/qwen3-next-80b-a3b-thinking',
+    label: 'Qwen 3 Next 80B A3B Thinking',
+  },
+];
 
 interface Question {
   id: number;
@@ -44,6 +90,9 @@ export default function InterviewSession() {
   const [waitingForFollowUp, setWaitingForFollowUp] = useState(false);
   const [currentAnswerId, setCurrentAnswerId] = useState<number | null>(null);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<string>(
+    AI_MODELS[0]?.value || ''
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -192,6 +241,7 @@ export default function InterviewSession() {
             questionOrder: currentQuestion.order,
             userAnswer,
             enableFollowUp,
+            aiModel: selectedModel,
           }),
         });
 
@@ -371,6 +421,28 @@ export default function InterviewSession() {
                   <Label htmlFor='followup' className='text-sm cursor-pointer'>
                     압박 꼬리질문 {enableFollowUp ? 'ON' : 'OFF'}
                   </Label>
+                </div>
+                <Separator orientation='vertical' className='h-6' />
+                <div className='w-48'>
+                  <Select
+                    value={selectedModel}
+                    onValueChange={setSelectedModel}
+                  >
+                    <SelectTrigger className='h-8 text-xs'>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AI_MODELS.map((model) => (
+                        <SelectItem
+                          key={model.value}
+                          value={model.value}
+                          className='text-xs'
+                        >
+                          {model.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               {questions[currentQuestionIndex] && (
