@@ -1,6 +1,8 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import questionsRouter from '../routers/questions';
+import interviewRouter from '../routers/interview';
+import answerNotesRouter from '../routers/answer-notes';
 
 const app = new Hono().basePath('/api');
 
@@ -14,5 +16,7 @@ app.get('/health', (c) => {
 });
 
 app.route('/questions', questionsRouter);
+app.route('/interview', interviewRouter);
+app.route('/answer-notes', answerNotesRouter);
 
 export default app;

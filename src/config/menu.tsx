@@ -1,4 +1,4 @@
-import { BookOpen, FileEdit, MessageSquareText } from 'lucide-react';
+import { BookOpen, FileEdit, Play, BarChart3, BookMarked } from 'lucide-react';
 import type { MenuSection } from '@/components/layout';
 
 export const menuConfig: MenuSection[] = [
@@ -10,14 +10,24 @@ export const menuConfig: MenuSection[] = [
         icon: BookOpen,
       },
       {
+        title: '면접 시작',
+        href: '/interview/start',
+        icon: Play,
+      },
+      {
+        title: '면접 기록',
+        href: '/interview/history',
+        icon: BarChart3,
+      },
+      {
+        title: '답변 노트',
+        href: '/answer-notes',
+        icon: BookMarked,
+      },
+      {
         title: '질문 관리',
         href: '/question-register',
         icon: FileEdit,
-      },
-      {
-        title: 'AI 가상 면접',
-        href: '/ai/qanda',
-        icon: MessageSquareText,
       },
     ],
   },

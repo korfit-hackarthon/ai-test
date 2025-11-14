@@ -10,7 +10,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Trash2, Edit, Plus, Save, X } from 'lucide-react';
 import {
@@ -27,6 +35,9 @@ import {
 interface Question {
   id: number;
   question: string;
+  category: 'common' | 'job' | 'foreigner';
+  jobType?: 'marketing' | 'sales' | 'it';
+  level?: 'intern' | 'entry';
   modelAnswer: string;
   reasoning: string;
   createdAt: string;
@@ -41,6 +52,9 @@ export default function QuestionRegister() {
 
   const [formData, setFormData] = useState({
     question: '',
+    category: 'common' as 'common' | 'job' | 'foreigner',
+    jobType: '' as 'marketing' | 'sales' | 'it' | '',
+    level: '' as 'intern' | 'entry' | '',
     modelAnswer: '',
     reasoning: '',
   });
@@ -112,6 +126,9 @@ export default function QuestionRegister() {
     setEditingId(question.id);
     setFormData({
       question: question.question,
+      category: question.category,
+      jobType: question.jobType || '',
+      level: question.level || '',
       modelAnswer: question.modelAnswer,
       reasoning: question.reasoning,
     });
@@ -146,7 +163,14 @@ export default function QuestionRegister() {
   };
 
   const resetForm = () => {
-    setFormData({ question: '', modelAnswer: '', reasoning: '' });
+    setFormData({
+      question: '',
+      category: 'common',
+      jobType: '',
+      level: '',
+      modelAnswer: '',
+      reasoning: '',
+    });
     setEditingId(null);
   };
 
@@ -179,6 +203,76 @@ export default function QuestionRegister() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className='space-y-6'>
+              <div className='grid gap-4 sm:grid-cols-3'>
+                <div className='space-y-2'>
+                  <Label htmlFor='category'>카테고리</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value: 'common' | 'job' | 'foreigner') =>
+                      setFormData({ ...formData, category: value })
+                    }
+                  >
+                    <SelectTrigger id='category'>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='common'>공통</SelectItem>
+                      <SelectItem value='job'>직무</SelectItem>
+                      <SelectItem value='foreigner'>외국인 특화</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className='space-y-2'>
+                  <Label htmlFor='jobType'>직무 (선택)</Label>
+                  <Select
+                    value={formData.jobType || 'none'}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        jobType:
+                          value === 'none'
+                            ? ''
+                            : (value as 'marketing' | 'sales' | 'it'),
+                      })
+                    }
+                  >
+                    <SelectTrigger id='jobType'>
+                      <SelectValue placeholder='선택 안함' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='none'>선택 안함</SelectItem>
+                      <SelectItem value='marketing'>마케팅</SelectItem>
+                      <SelectItem value='sales'>영업</SelectItem>
+                      <SelectItem value='it'>개발(IT)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className='space-y-2'>
+                  <Label htmlFor='level'>레벨 (선택)</Label>
+                  <Select
+                    value={formData.level || 'none'}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        level:
+                          value === 'none' ? '' : (value as 'intern' | 'entry'),
+                      })
+                    }
+                  >
+                    <SelectTrigger id='level'>
+                      <SelectValue placeholder='선택 안함' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='none'>선택 안함</SelectItem>
+                      <SelectItem value='intern'>인턴</SelectItem>
+                      <SelectItem value='entry'>신입</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               <div className='space-y-2'>
                 <Label htmlFor='question'>질문</Label>
                 <Textarea
@@ -273,6 +367,30 @@ export default function QuestionRegister() {
                 >
                   <CardContent className='pt-6'>
                     <div className='space-y-3'>
+                      <div className='flex items-center gap-2 mb-2'>
+                        <Badge variant='outline'>
+                          {q.category === 'common'
+                            ? '공통'
+                            : q.category === 'job'
+                              ? '직무'
+                              : '외국인'}
+                        </Badge>
+                        {q.jobType && (
+                          <Badge variant='secondary'>
+                            {q.jobType === 'marketing'
+                              ? '마케팅'
+                              : q.jobType === 'sales'
+                                ? '영업'
+                                : '개발(IT)'}
+                          </Badge>
+                        )}
+                        {q.level && (
+                          <Badge variant='secondary'>
+                            {q.level === 'intern' ? '인턴' : '신입'}
+                          </Badge>
+                        )}
+                      </div>
+
                       <div>
                         <p className='text-sm font-medium text-muted-foreground mb-1'>
                           질문

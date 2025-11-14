@@ -5,7 +5,11 @@
 
 html,
 body {
-  font-family: 'Alexandria', system-ui, -apple-system, sans-serif !important;
+  font-family:
+    'Alexandria',
+    system-ui,
+    -apple-system,
+    sans-serif !important;
 }
 
 * {
@@ -224,4 +228,34 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Modern scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+::-webkit-scrollbar-corner {
+  background: hsl(var(--muted));
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) hsl(var(--muted));
 }

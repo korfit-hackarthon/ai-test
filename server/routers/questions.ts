@@ -10,6 +10,9 @@ const app = new Hono();
 
 const createQuestionSchema = z.object({
   question: z.string().min(1),
+  category: z.enum(['common', 'job', 'foreigner']),
+  jobType: z.enum(['marketing', 'sales', 'it']).optional(),
+  level: z.enum(['intern', 'entry']).optional(),
   modelAnswer: z.string().min(1),
   reasoning: z.string().min(1),
 });
@@ -53,6 +56,9 @@ app.post('/', zValidator('json', createQuestionSchema), async (c) => {
     .insert(questions)
     .values({
       question: data.question,
+      category: data.category,
+      jobType: data.jobType || null,
+      level: data.level || null,
       modelAnswer: data.modelAnswer,
       reasoning: data.reasoning,
     })
@@ -70,6 +76,9 @@ app.put('/:id', zValidator('json', createQuestionSchema), async (c) => {
     .update(questions)
     .set({
       question: data.question,
+      category: data.category,
+      jobType: data.jobType || null,
+      level: data.level || null,
       modelAnswer: data.modelAnswer,
       reasoning: data.reasoning,
       updatedAt: new Date(),
