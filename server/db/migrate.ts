@@ -28,9 +28,14 @@ async function migrate() {
       const trimmed = statement.trim();
       if (trimmed) {
         try {
+          console.log(`🔧 실행: ${trimmed.substring(0, 50)}...`);
           db.exec(trimmed);
+          console.log(`✅ SQL 실행 성공`);
         } catch (error) {
-          console.log(`⚠️  ${file}의 문장 건너뛰기 (이미 존재할 수 있음)`);
+          console.log(
+            `⚠️  ${file}의 문장 건너뛰기 (이미 존재할 수 있음):`,
+            error
+          );
         }
       }
     }
