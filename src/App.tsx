@@ -11,6 +11,7 @@ import InterviewSession from './pages/interview/session.tsx';
 import InterviewResult from './pages/interview/result';
 import InterviewHistory from './pages/interview/history';
 import AnswerNotes from './pages/answer-notes';
+import AutoRecruit from './pages/auto-recruit';
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
             <Route path='/interview/history' element={<InterviewHistory />} />
             <Route path='/answer-notes' element={<AnswerNotes />} />
             <Route path='/question-register' element={<QuestionRegister />} />
+            <Route path='/auto-recruit' element={<AutoRecruit />} />
           </Route>
         </Route>
       </Routes>

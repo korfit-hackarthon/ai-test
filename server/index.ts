@@ -6,6 +6,7 @@ import app from './hono';
 const server = serve({
   hostname: '0.0.0.0',
   port: 8000,
+  idleTimeout: 255,
 
   routes: {
     '/*': index,

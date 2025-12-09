@@ -1,4 +1,11 @@
-import { BookOpen, FileEdit, Play, BarChart3, BookMarked } from 'lucide-react';
+import {
+  BookOpen,
+  FileEdit,
+  Play,
+  BarChart3,
+  BookMarked,
+  Upload,
+} from 'lucide-react';
 import type { MenuSection } from '@/components/layout';
 
 export const menuConfig: MenuSection[] = [
@@ -28,6 +35,11 @@ export const menuConfig: MenuSection[] = [
         title: '질문 관리',
         href: '/question-register',
         icon: FileEdit,
+      },
+      {
+        title: '자동 공고 등록',
+        href: '/auto-recruit',
+        icon: Upload,
       },
     ],
   },

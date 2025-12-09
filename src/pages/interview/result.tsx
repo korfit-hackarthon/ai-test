@@ -26,7 +26,16 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { ArrowLeft, Download, BookOpen, Save } from 'lucide-react';
+import {
+  ArrowLeft,
+  Download,
+  BookOpen,
+  Save,
+  Star,
+  Zap,
+  Target,
+  MessageSquare,
+} from 'lucide-react';
 
 interface Evaluation {
   logic: number;
@@ -168,66 +177,88 @@ export default function InterviewResult() {
   );
 
   return (
-    <div className='container max-w-6xl mx-auto py-8 px-4 space-y-6'>
+    <div className='container max-w-6xl mx-auto py-8 px-4 space-y-8'>
       {/* 헤더 */}
-      <div className='flex items-center justify-between'>
+      <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>
         <div>
-          <h1 className='text-3xl font-bold tracking-tight'>면접 평가 결과</h1>
-          <p className='text-muted-foreground mt-1'>
-            {interviewSet?.jobType && (
-              <>
-                {interviewSet.jobType === 'marketing'
-                  ? '마케팅'
-                  : interviewSet.jobType === 'sales'
-                    ? '영업'
-                    : '개발(IT)'}
-                {' · '}
-                {interviewSet.level === 'intern' ? '인턴' : '신입'}
-              </>
-            )}
-          </p>
+          <h1 className='text-3xl font-bold tracking-tight'>
+            면접 분석 리포트
+          </h1>
+          <div className='flex items-center gap-2 mt-2'>
+            <Badge variant='secondary' className='px-2 py-0.5 text-sm'>
+              {interviewSet?.jobType && (
+                <>
+                  {interviewSet.jobType === 'marketing'
+                    ? '마케팅'
+                    : interviewSet.jobType === 'sales'
+                      ? '영업'
+                      : '개발(IT)'}
+                </>
+              )}
+            </Badge>
+            <span className='text-muted-foreground text-sm'>
+              {interviewSet?.level === 'intern' ? '인턴' : '신입'} 지원 · AI
+              면접 결과
+            </span>
+          </div>
         </div>
-        <div className='flex gap-2'>
-          <Button
-            variant='outline'
-            onClick={() => navigate('/interview/start')}
-          >
-            <ArrowLeft className='mr-2 h-4 w-4' />새 면접 시작
-          </Button>
-        </div>
+        <Button variant='outline' onClick={() => navigate('/interview/start')}>
+          <ArrowLeft className='mr-2 h-4 w-4' />새 면접 시작
+        </Button>
       </div>
 
-      {/* 종합 점수 */}
-      <Card>
-        <CardHeader>
-          <div className='flex items-center justify-between'>
-            <div className='space-y-1'>
-              <CardTitle>종합 평가</CardTitle>
-              <CardDescription>전체 항목 평균 점수</CardDescription>
-            </div>
+      {/* 종합 점수 및 피드백 요약 */}
+      <div className='grid gap-6 md:grid-cols-3'>
+        <Card className='md:col-span-1 bg-primary/5 border-primary/10'>
+          <CardHeader className='pb-2'>
+            <CardTitle className='text-lg font-medium flex items-center gap-2'>
+              <Star className='w-5 h-5 text-primary' />
+              종합 점수
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className='flex items-baseline gap-2'>
-              <span className='text-4xl font-bold text-foreground'>
+              <span className='text-5xl font-bold text-primary tracking-tight'>
                 {averageScore}
               </span>
-              <span className='text-xl text-muted-foreground'>/100</span>
+              <span className='text-sm text-muted-foreground'>/ 100</span>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <p className='text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground'>
-            {evaluation.overallFeedback}
-          </p>
-        </CardContent>
-      </Card>
+            <p className='text-sm text-muted-foreground mt-4'>
+              {averageScore >= 80
+                ? '탁월한 역량을 보여주셨습니다! 🎉'
+                : averageScore >= 60
+                  ? '준수한 역량을 갖추고 계십니다. 👍'
+                  : '조금 더 준비가 필요합니다. 💪'}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className='md:col-span-2'>
+          <CardHeader className='pb-2'>
+            <CardTitle className='text-lg font-medium flex items-center gap-2'>
+              <MessageSquare className='w-5 h-5 text-primary' />
+              종합 피드백
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className='text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap'>
+              {evaluation.overallFeedback}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className='grid gap-6 lg:grid-cols-2'>
-        {/* 5각형 역량 진단 */}
+        {/* 역량 진단 차트 */}
         <Card>
           <CardHeader>
-            <CardTitle>역량 진단</CardTitle>
-            <CardDescription>5가지 항목별 점수 분석</CardDescription>
+            <CardTitle className='flex items-center gap-2'>
+              <Target className='w-5 h-5 text-primary' />
+              역량 분석
+            </CardTitle>
+            <CardDescription>5대 핵심 역량 진단 결과입니다.</CardDescription>
           </CardHeader>
-          <CardContent className='flex items-center justify-center'>
+          <CardContent className='flex items-center justify-center pb-8'>
             <ChartContainer
               config={{
                 value: {
@@ -235,7 +266,7 @@ export default function InterviewResult() {
                   color: 'hsl(var(--primary))',
                 },
               }}
-              className='h-[350px] w-full'
+              className='h-[300px] w-full'
             >
               <RadarChart
                 data={radarData}
@@ -294,32 +325,68 @@ export default function InterviewResult() {
         {/* 세부 점수 */}
         <Card>
           <CardHeader>
-            <CardTitle>세부 점수</CardTitle>
-            <CardDescription>항목별 상세 점수</CardDescription>
+            <CardTitle className='flex items-center gap-2'>
+              <Zap className='w-5 h-5 text-primary' />
+              세부 평가
+            </CardTitle>
+            <CardDescription>항목별 상세 점수 및 분석</CardDescription>
           </CardHeader>
-          <CardContent className='space-y-4'>
+          <CardContent className='space-y-6'>
             {[
-              { label: '논리성', value: evaluation.logic },
-              { label: '근거', value: evaluation.evidence },
-              { label: '직무이해도', value: evaluation.jobUnderstanding },
-              { label: '한국어 격식', value: evaluation.formality },
-              { label: '완성도', value: evaluation.completeness },
+              {
+                label: '논리성',
+                value: evaluation.logic,
+                desc: '답변의 논리적 구조와 일관성',
+              },
+              {
+                label: '근거 제시',
+                value: evaluation.evidence,
+                desc: '구체적인 사례와 근거 활용',
+              },
+              {
+                label: '직무 이해도',
+                value: evaluation.jobUnderstanding,
+                desc: '직무에 필요한 핵심 역량 이해',
+              },
+              {
+                label: '의사소통',
+                value: evaluation.formality,
+                desc: '적절한 어휘 선택과 표현력',
+              },
+              {
+                label: '완성도',
+                value: evaluation.completeness,
+                desc: '답변의 구체성과 충실도',
+              },
             ].map((item) => (
               <div key={item.label} className='space-y-2'>
                 <div className='flex items-center justify-between'>
-                  <span className='text-sm font-medium text-foreground'>
-                    {item.label}
-                  </span>
+                  <div>
+                    <span className='text-sm font-medium text-foreground'>
+                      {item.label}
+                    </span>
+                    <span className='text-xs text-muted-foreground ml-2 hidden sm:inline-block'>
+                      {item.desc}
+                    </span>
+                  </div>
                   <div className='flex items-center gap-1'>
-                    <span className='text-base font-semibold text-foreground'>
+                    <span
+                      className={`text-base font-bold ${
+                        item.value >= 80
+                          ? 'text-primary'
+                          : item.value >= 60
+                            ? 'text-foreground'
+                            : 'text-muted-foreground'
+                      }`}
+                    >
                       {item.value}
                     </span>
                     <span className='text-xs text-muted-foreground'>/100</span>
                   </div>
                 </div>
-                <div className='relative w-full h-2 rounded-full bg-secondary'>
+                <div className='relative w-full h-2.5 rounded-full bg-secondary overflow-hidden'>
                   <div
-                    className='h-full bg-primary rounded-full transition-all duration-300'
+                    className='h-full bg-primary transition-all duration-500 ease-out rounded-full'
                     style={{ width: `${item.value}%` }}
                   />
                 </div>
@@ -330,85 +397,93 @@ export default function InterviewResult() {
       </div>
 
       {/* 질문별 상세 피드백 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>질문별 상세 피드백</CardTitle>
-          <CardDescription>각 답변에 대한 구체적인 개선 제안</CardDescription>
-        </CardHeader>
-        <CardContent className='space-y-6'>
-          {evaluation.detailedFeedback?.map((feedback, index) => (
-            <div key={index}>
-              {index > 0 && <Separator className='my-6' />}
-              <div className='space-y-3'>
-                <div className='flex items-center gap-2'>
-                  <Badge variant='outline'>질문 {feedback.questionOrder}</Badge>
-                  <h3 className='font-semibold'>평가</h3>
-                </div>
-                <p className='text-sm'>{feedback.feedback}</p>
-                <div className='bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4'>
-                  <h4 className='text-sm font-semibold mb-2 flex items-center gap-2'>
-                    <BookOpen className='h-4 w-4' />
-                    개선 제안
-                  </h4>
-                  <p className='text-sm text-muted-foreground'>
-                    {feedback.improvements}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <div className='space-y-6'>
+        <h2 className='text-2xl font-bold tracking-tight mt-8'>상세 피드백</h2>
+        <div className='grid gap-6'>
+          {evaluation.detailedFeedback?.map((feedback, index) => {
+            const relatedAnswer = answers.find(
+              (a) => a.questionOrder === feedback.questionOrder
+            );
 
-      {/* 나의 답변 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>나의 답변</CardTitle>
-          <CardDescription>면접에서 작성한 모든 답변</CardDescription>
-        </CardHeader>
-        <CardContent className='space-y-4'>
-          {answers.map((answer, index) => (
-            <div key={index}>
-              {index > 0 && <Separator className='my-4' />}
-              <div className='space-y-3'>
-                <div className='flex items-center justify-between'>
-                  <Badge variant='outline'>질문 {answer.questionOrder}</Badge>
-                  <Button
-                    size='sm'
-                    variant='outline'
-                    onClick={() => handleSaveToNote(answer)}
-                  >
-                    <Save className='mr-2 h-4 w-4' />
-                    답변노트에 저장
-                  </Button>
-                </div>
-                <div className='bg-muted/50 rounded-lg p-4'>
-                  <p className='text-sm font-medium text-muted-foreground mb-2'>
-                    {answer.question?.question || '질문 정보 없음'}
-                  </p>
-                  <p className='text-sm whitespace-pre-wrap'>
-                    {answer.userAnswer}
-                  </p>
-                </div>
-                {answer.followUpQuestion && (
-                  <>
-                    <div className='ml-4 space-y-2'>
-                      <p className='text-sm font-medium text-amber-600 dark:text-amber-400'>
-                        꼬리질문: {answer.followUpQuestion}
-                      </p>
-                      {answer.followUpAnswer && (
-                        <div className='bg-amber-50 dark:bg-amber-950 rounded-lg p-3'>
-                          <p className='text-sm'>{answer.followUpAnswer}</p>
-                        </div>
-                      )}
+            return (
+              <Card key={index} className='overflow-hidden'>
+                <CardHeader className='bg-muted/30 pb-4'>
+                  <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>
+                    <div className='flex items-center gap-3'>
+                      <Badge variant='outline' className='bg-background'>
+                        질문 {feedback.questionOrder}
+                      </Badge>
+                      <h3 className='font-medium text-foreground'>
+                        {relatedAnswer?.question?.question || '질문 내용 없음'}
+                      </h3>
                     </div>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+                    {relatedAnswer && (
+                      <Button
+                        size='sm'
+                        variant='secondary'
+                        className='h-8'
+                        onClick={() => handleSaveToNote(relatedAnswer)}
+                      >
+                        <Save className='mr-2 h-3.5 w-3.5' />
+                        답변노트에 저장
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className='p-6 space-y-6'>
+                  {/* 나의 답변 */}
+                  <div className='space-y-2'>
+                    <h4 className='text-sm font-semibold text-muted-foreground'>
+                      나의 답변
+                    </h4>
+                    <div className='bg-muted/30 p-4 rounded-md text-sm leading-relaxed whitespace-pre-wrap'>
+                      {relatedAnswer?.userAnswer}
+                    </div>
+                    {relatedAnswer?.followUpQuestion && (
+                      <div className='pl-4 border-l-2 border-primary/20 mt-4 space-y-2'>
+                        <p className='text-sm font-medium text-primary'>
+                          ↳ 꼬리질문: {relatedAnswer.followUpQuestion}
+                        </p>
+                        {relatedAnswer.followUpAnswer && (
+                          <p className='text-sm text-muted-foreground bg-muted/30 p-3 rounded-md'>
+                            {relatedAnswer.followUpAnswer}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  {/* AI 피드백 */}
+                  <div className='grid md:grid-cols-2 gap-6'>
+                    <div className='space-y-2'>
+                      <h4 className='text-sm font-semibold text-primary flex items-center gap-2'>
+                        <MessageSquare className='w-4 h-4' />
+                        AI 평가
+                      </h4>
+                      <p className='text-sm text-muted-foreground leading-relaxed'>
+                        {feedback.feedback}
+                      </p>
+                    </div>
+                    <div className='space-y-2'>
+                      <h4 className='text-sm font-semibold text-green-600 dark:text-green-400 flex items-center gap-2'>
+                        <BookOpen className='w-4 h-4' />
+                        개선 제안
+                      </h4>
+                      <div className='bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/30 rounded-lg p-4'>
+                        <p className='text-sm text-muted-foreground leading-relaxed'>
+                          {feedback.improvements}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
