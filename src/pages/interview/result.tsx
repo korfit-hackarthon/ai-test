@@ -338,26 +338,26 @@ export default function InterviewResult() {
             return (
               <Card
                 key={index}
-                className='overflow-hidden border-none shadow-md ring-1 ring-border/50'
+                className='overflow-hidden border border-border/50 shadow-sm bg-background'
               >
-                <CardHeader className='bg-muted/30 pb-4 border-b'>
+                <CardHeader className='pb-4 border-b bg-muted/10'>
                   <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>
-                    <div className='flex items-start gap-3'>
+                    <div className='flex items-center gap-3'>
                       <Badge
                         variant='outline'
-                        className='bg-background mt-0.5 shrink-0'
+                        className='bg-background shrink-0 px-2.5 py-0.5 text-sm font-medium border-primary/20 text-primary'
                       >
                         Q{feedback.questionOrder}
                       </Badge>
-                      <h3 className='font-semibold text-lg leading-tight'>
+                      <h3 className='font-semibold text-lg leading-tight text-foreground/90'>
                         {relatedAnswer?.question?.question || '질문 내용 없음'}
                       </h3>
                     </div>
                     {relatedAnswer && (
                       <Button
                         size='sm'
-                        variant='ghost'
-                        className='shrink-0 hover:bg-background shadow-sm border'
+                        variant='outline'
+                        className='shrink-0 h-8 text-xs font-medium'
                         onClick={() => handleSaveToNote(relatedAnswer)}
                       >
                         <Save className='mr-2 h-3.5 w-3.5' />
@@ -368,62 +368,72 @@ export default function InterviewResult() {
                 </CardHeader>
 
                 <CardContent className='p-0'>
-                  <div className='grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x'>
+                  <div className='grid lg:grid-cols-[1fr_1px_1fr]'>
                     {/* User Answer Column */}
-                    <div className='p-6 bg-background space-y-4'>
-                      <div className='flex items-center gap-2 mb-2'>
-                        <div className='w-2 h-2 rounded-full bg-blue-500' />
-                        <span className='text-sm font-semibold text-muted-foreground'>
+                    <div className='p-6 lg:pr-8'>
+                      <div className='flex items-center gap-2 mb-4'>
+                        <div className='w-1.5 h-1.5 rounded-full bg-blue-500' />
+                        <span className='text-sm font-semibold text-foreground/80 tracking-tight'>
                           나의 답변
                         </span>
                       </div>
-                      <div className='bg-muted/20 p-4 rounded-xl text-sm leading-relaxed whitespace-pre-wrap border border-border/50'>
-                        {relatedAnswer?.userAnswer}
-                      </div>
-
-                      {relatedAnswer?.followUpQuestion && (
-                        <div className='mt-4 pt-4 border-t border-dashed'>
-                          <div className='flex items-center gap-2 mb-2'>
-                            <AlertCircle className='w-4 h-4 text-amber-500' />
-                            <span className='text-sm font-medium text-amber-600 dark:text-amber-500'>
-                              압박 꼬리질문
-                            </span>
-                          </div>
-                          <p className='text-sm font-medium mb-2 pl-6'>
-                            {relatedAnswer.followUpQuestion}
-                          </p>
-                          {relatedAnswer.followUpAnswer && (
-                            <div className='bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg text-sm text-muted-foreground ml-6 border border-amber-100 dark:border-amber-900/50'>
-                              {relatedAnswer.followUpAnswer}
-                            </div>
-                          )}
+                      <div className='space-y-6'>
+                        <div className='text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap'>
+                          {relatedAnswer?.userAnswer}
                         </div>
-                      )}
+
+                        {relatedAnswer?.followUpQuestion && (
+                          <div className='rounded-lg bg-amber-500/5 border border-amber-500/10 p-4 space-y-3'>
+                            <div className='flex items-center gap-2'>
+                              <AlertCircle className='w-4 h-4 text-amber-500' />
+                              <span className='text-sm font-medium text-amber-600 dark:text-amber-500'>
+                                압박 꼬리질문
+                              </span>
+                            </div>
+                            <p className='text-sm font-medium text-foreground/90 pl-6'>
+                              {relatedAnswer.followUpQuestion}
+                            </p>
+                            {relatedAnswer.followUpAnswer && (
+                              <div className='pl-6 pt-2 text-sm text-muted-foreground border-l-2 border-amber-500/20 ml-2'>
+                                {relatedAnswer.followUpAnswer}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {/* AI Feedback Column */}
-                    <div className='p-6 bg-muted/5 space-y-6'>
-                      <div className='space-y-3'>
-                        <div className='flex items-center gap-2'>
-                          <Star className='w-4 h-4 text-primary' />
-                          <h4 className='text-sm font-semibold'>
-                            분석 및 평가
-                          </h4>
-                        </div>
-                        <p className='text-sm text-muted-foreground leading-relaxed pl-6'>
-                          {feedback.feedback}
-                        </p>
-                      </div>
+                    {/* Divider */}
+                    <div className='hidden lg:block bg-border/50 my-6' />
+                    <Separator className='lg:hidden bg-border/50' />
 
-                      <div className='space-y-3'>
-                        <div className='flex items-center gap-2'>
-                          <BookOpen className='w-4 h-4 text-green-600 dark:text-green-500' />
-                          <h4 className='text-sm font-semibold'>개선 제안</h4>
-                        </div>
-                        <div className='bg-green-50/50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/30 rounded-xl p-4 ml-6'>
+                    {/* AI Feedback Column */}
+                    <div className='p-6 lg:pl-8 bg-muted/5'>
+                      <div className='space-y-8'>
+                        <div className='space-y-3'>
+                          <div className='flex items-center gap-2'>
+                            <Star className='w-4 h-4 text-primary' />
+                            <h4 className='text-sm font-semibold text-foreground/80 tracking-tight'>
+                              분석 및 평가
+                            </h4>
+                          </div>
                           <p className='text-sm text-muted-foreground leading-relaxed'>
-                            {feedback.improvements}
+                            {feedback.feedback}
                           </p>
+                        </div>
+
+                        <div className='space-y-3'>
+                          <div className='flex items-center gap-2'>
+                            <BookOpen className='w-4 h-4 text-green-500' />
+                            <h4 className='text-sm font-semibold text-foreground/80 tracking-tight'>
+                              개선 제안
+                            </h4>
+                          </div>
+                          <div className='rounded-lg bg-green-500/5 border border-green-500/10 p-4'>
+                            <p className='text-sm text-muted-foreground leading-relaxed'>
+                              {feedback.improvements}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
