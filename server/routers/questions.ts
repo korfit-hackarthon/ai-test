@@ -4,7 +4,11 @@ import { z } from 'zod';
 import db from '../db/drizzle';
 import { questions, qaHistory } from '../db/schema';
 import { eq, desc } from 'drizzle-orm';
-import OpenAI from 'openai';
+import {
+  createOpenRouterClient,
+  stripMarkdownCodeFences,
+  transcribeAudioBase64,
+} from '../lib/openrouter';
 
 const app = new Hono();
 
@@ -17,11 +21,21 @@ const createQuestionSchema = z.object({
   reasoning: z.string().min(1),
 });
 
-const submitAnswerSchema = z.object({
-  questionId: z.number(),
-  userAnswer: z.string().min(1),
-  aiModel: z.string(),
-});
+const submitAnswerSchema = z
+  .object({
+    questionId: z.number(),
+    userAnswer: z.string().min(1).optional(),
+    audio: z
+      .object({
+        data: z.string().min(1),
+        format: z.string().min(1),
+      })
+      .optional(),
+    aiModel: z.string(),
+  })
+  .refine((v) => !!v.userAnswer || !!v.audio, {
+    message: 'userAnswer 또는 audio 중 하나는 필수입니다.',
+  });
 
 // 질문 목록 조회
 app.get('/', async (c) => {
@@ -111,7 +125,12 @@ app.delete('/:id', async (c) => {
 
 // AI 답변 평가
 app.post('/evaluate', zValidator('json', submitAnswerSchema), async (c) => {
-  const { questionId, userAnswer, aiModel } = c.req.valid('json');
+  const {
+    questionId,
+    userAnswer: userAnswerRaw,
+    audio,
+    aiModel,
+  } = c.req.valid('json');
 
   // 질문 조회
   const question = await db
@@ -125,10 +144,18 @@ app.post('/evaluate', zValidator('json', submitAnswerSchema), async (c) => {
   }
 
   // OpenRouter를 통한 AI 평가
-  const openai = new OpenAI({
-    baseURL: 'https://openrouter.ai/api/v1',
-    apiKey: process.env.OPENROUTER_API_KEY,
-  });
+  const openai = createOpenRouterClient();
+
+  let userAnswer = userAnswerRaw || '';
+  let transcript: string | null = null;
+  if (!userAnswer && audio) {
+    transcript = await transcribeAudioBase64({
+      audioBase64: audio.data,
+      audioFormat: audio.format,
+      model: aiModel,
+    });
+    userAnswer = transcript;
+  }
 
   const systemPrompt = `당신은 면접관입니다. 지원자의 답변을 평가하고 개선점을 제시합니다.
 
@@ -164,10 +191,7 @@ app.post('/evaluate', zValidator('json', submitAnswerSchema), async (c) => {
     let aiResponse = completion.choices[0]?.message?.content || '{}';
 
     // ```json``` 마크다운 코드 블록 제거
-    aiResponse = aiResponse
-      .replace(/```json\s*/g, '')
-      .replace(/```\s*/g, '')
-      .trim();
+    aiResponse = stripMarkdownCodeFences(aiResponse);
 
     const evaluation = JSON.parse(aiResponse);
 
@@ -187,6 +211,7 @@ app.post('/evaluate', zValidator('json', submitAnswerSchema), async (c) => {
     return c.json({
       ...evaluation,
       historyId: historyResult[0]?.id || 0,
+      transcript,
     });
   } catch (error) {
     console.error('AI evaluation error:', error);

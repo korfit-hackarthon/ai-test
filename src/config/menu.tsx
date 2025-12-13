@@ -36,11 +36,11 @@ export const menuConfig: MenuSection[] = [
         href: '/question-register',
         icon: FileEdit,
       },
-      {
-        title: '자동 공고 등록',
-        href: '/auto-recruit',
-        icon: Upload,
-      },
+      // {
+      //   title: '자동 공고 등록',
+      //   href: '/auto-recruit',
+      //   icon: Upload,
+      // },
     ],
   },
 ];

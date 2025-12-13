@@ -35,7 +35,7 @@ export default function App() {
             <Route path='/interview/history' element={<InterviewHistory />} />
             <Route path='/answer-notes' element={<AnswerNotes />} />
             <Route path='/question-register' element={<QuestionRegister />} />
-            <Route path='/auto-recruit' element={<AutoRecruit />} />
+            {/* <Route path='/auto-recruit' element={<AutoRecruit />} /> */}
           </Route>
         </Route>
       </Routes>

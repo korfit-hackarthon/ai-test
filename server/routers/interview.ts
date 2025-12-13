@@ -11,7 +11,11 @@ import {
   answerNotes,
 } from '../db/schema';
 import { eq, and, desc, inArray } from 'drizzle-orm';
-import OpenAI from 'openai';
+import {
+  createOpenRouterClient,
+  stripMarkdownCodeFences,
+  transcribeAudioBase64,
+} from '../lib/openrouter';
 
 const app = new Hono();
 
@@ -21,19 +25,39 @@ const createSetSchema = z.object({
   questionCount: z.number().min(1).max(10).default(3),
 });
 
-const submitAnswerSchema = z.object({
-  setId: z.number(),
-  questionId: z.number(),
-  questionOrder: z.number(),
-  userAnswer: z.string().min(1),
-  enableFollowUp: z.boolean().optional(),
-  aiModel: z.string().optional(),
-});
+const submitAnswerSchema = z
+  .object({
+    setId: z.number(),
+    questionId: z.number(),
+    questionOrder: z.number(),
+    userAnswer: z.string().min(1).optional(),
+    audio: z
+      .object({
+        data: z.string().min(1),
+        format: z.string().min(1),
+      })
+      .optional(),
+    enableFollowUp: z.boolean().optional(),
+    aiModel: z.string().optional(),
+  })
+  .refine((v) => !!v.userAnswer || !!v.audio, {
+    message: 'userAnswer 또는 audio 중 하나는 필수입니다.',
+  });
 
-const submitFollowUpSchema = z.object({
-  answerId: z.number(),
-  followUpAnswer: z.string().min(1),
-});
+const submitFollowUpSchema = z
+  .object({
+    answerId: z.number(),
+    followUpAnswer: z.string().min(1).optional(),
+    audio: z
+      .object({
+        data: z.string().min(1),
+        format: z.string().min(1),
+      })
+      .optional(),
+  })
+  .refine((v) => !!v.followUpAnswer || !!v.audio, {
+    message: 'followUpAnswer 또는 audio 중 하나는 필수입니다.',
+  });
 
 // 면접 세트 생성 (질문 개수 선택 가능)
 app.post('/sets', zValidator('json', createSetSchema), async (c) => {
@@ -156,12 +180,25 @@ app.post('/answers', zValidator('json', submitAnswerSchema), async (c) => {
     setId,
     questionId,
     questionOrder,
-    userAnswer,
+    userAnswer: userAnswerRaw,
+    audio,
     enableFollowUp,
     aiModel,
   } = c.req.valid('json');
 
   try {
+    // 음성 입력이면 먼저 전사
+    let userAnswer = userAnswerRaw || '';
+    let transcript: string | null = null;
+    if (!userAnswer && audio) {
+      transcript = await transcribeAudioBase64({
+        audioBase64: audio.data,
+        audioFormat: audio.format,
+        model: aiModel,
+      });
+      userAnswer = transcript;
+    }
+
     // 질문 조회 (기본 질문인 경우 ID가 없을 수 있음)
     const question = await db
       .select()
@@ -174,10 +211,7 @@ app.post('/answers', zValidator('json', submitAnswerSchema), async (c) => {
 
     // 꼬리질문 생성 (활성화된 경우)
     if (enableFollowUp) {
-      const openai = new OpenAI({
-        baseURL: 'https://openrouter.ai/api/v1',
-        apiKey: process.env.OPENROUTER_API_KEY,
-      });
+      const openai = createOpenRouterClient();
 
       const modelToUse = aiModel || 'google/gemini-2.5-flash-preview-09-2025';
 
@@ -214,10 +248,7 @@ JSON 형식으로 응답:
       });
 
       const response = completion.choices[0]?.message?.content || '{}';
-      const cleaned = response
-        .replace(/```json\s*/g, '')
-        .replace(/```\s*/g, '')
-        .trim();
+      const cleaned = stripMarkdownCodeFences(response);
       const parsed = JSON.parse(cleaned);
       followUpQuestion = parsed.followUpQuestion;
     }
@@ -237,6 +268,7 @@ JSON 형식으로 응답:
     return c.json({
       answerId: answerResult[0]?.id || 0,
       followUpQuestion,
+      transcript,
     });
   } catch (error) {
     console.error('Error submitting answer:', error);
@@ -249,15 +281,29 @@ app.post(
   '/follow-up-answers',
   zValidator('json', submitFollowUpSchema),
   async (c) => {
-    const { answerId, followUpAnswer } = c.req.valid('json');
+    const {
+      answerId,
+      followUpAnswer: followUpAnswerRaw,
+      audio,
+    } = c.req.valid('json');
 
     try {
+      let followUpAnswer = followUpAnswerRaw || '';
+      let transcript: string | null = null;
+      if (!followUpAnswer && audio) {
+        transcript = await transcribeAudioBase64({
+          audioBase64: audio.data,
+          audioFormat: audio.format,
+        });
+        followUpAnswer = transcript;
+      }
+
       await db
         .update(interviewAnswers)
         .set({ followUpAnswer })
         .where(eq(interviewAnswers.id, answerId));
 
-      return c.json({ success: true });
+      return c.json({ success: true, transcript });
     } catch (error) {
       console.error('Error submitting follow-up answer:', error);
       return c.json({ error: 'Failed to submit follow-up answer' }, 500);
@@ -299,10 +345,7 @@ app.post('/sets/:id/complete', async (c) => {
       const questionMap = new Map(questionData.map((q) => [q.id, q]));
 
       // AI 평가 요청
-      const openai = new OpenAI({
-        baseURL: 'https://openrouter.ai/api/v1',
-        apiKey: process.env.OPENROUTER_API_KEY,
-      });
+      const openai = createOpenRouterClient();
 
       const evaluationPrompt = `당신은 한국 기업의 인사담당자입니다. 외국인 지원자의 면접 답변을 종합 평가하세요.
 
@@ -368,10 +411,7 @@ JSON 형식으로 응답:
       }
 
       // JSON 파싱
-      const cleaned = fullResponse
-        .replace(/```json\s*/g, '')
-        .replace(/```\s*/g, '')
-        .trim();
+      const cleaned = stripMarkdownCodeFences(fullResponse);
       const evaluation = JSON.parse(cleaned);
 
       // 평가 저장
